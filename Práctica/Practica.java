@@ -3,12 +3,12 @@ import java.awt.*;
 import java.util.*;
 import javax.swing.*;
 
-public class JuegoSwing extends JFrame {
+public class Practica extends JFrame {
     private JTextArea areaTexto;
     private Stack<String> pilaAcciones;
     private Queue<String> colaAcciones;
 
-    public JuegoSwing() {
+    public Practica() {
         setTitle("Practica con Pila y Cola");
         setSize(500, 400);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -102,7 +102,7 @@ public class JuegoSwing extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            new JuegoSwing().setVisible(true);
+            new Practica().setVisible(true);
         });
     }
 }
