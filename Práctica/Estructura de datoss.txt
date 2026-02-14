@@ -1,0 +1,14 @@
+1. Colas:
+Una cola es una estructura de datos lineal que sigue el principio FIFO (First In, First Out).
+
+2. Pilas:
+Una pila es una estructura de datos lineal que sigue el principio LIFO (Last In, First Out).
+
+3. Listas:
+Una lista es una colección ordenada de elementos que pueden ser accedidos por su posición.
+
+4. Árboles:
+Un árbol es una estructura jerárquica compuesta por nodos.
+
+5. Grafos:
+Un grafo es una estructura de datos formada por nodos (vértices) y aristas (conexiones).
