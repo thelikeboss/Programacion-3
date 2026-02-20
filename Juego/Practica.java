@@ -1,4 +1,4 @@
-package Práctica;
+package Juego;
 import java.awt.*;
 import java.util.*;
 import javax.swing.*;
