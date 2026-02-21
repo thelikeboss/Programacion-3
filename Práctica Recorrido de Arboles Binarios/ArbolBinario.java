@@ -76,8 +76,7 @@ public class ArbolBinario {
     public void postOrder(Nodo nodo) {
         if (nodo == null) {
             return;
-        }
-        postOrder(nodo.getLeftChild());
+        }a
         postOrder(nodo.getRightChild());
         System.out.print(nodo.getN() + " ");
     }
