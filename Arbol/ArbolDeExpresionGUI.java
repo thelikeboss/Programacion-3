@@ -1,3 +1,4 @@
+
 import java.util.EmptyStackException;
 import java.util.Stack;
 import javax.swing.*;
@@ -32,42 +33,54 @@ class NodoExpresion {
 
     // PREORDER
     public String preOrder(NodoExpresion raiz) {
-        if (raiz == null) return "";
-        return raiz.texto +
-               preOrder(raiz.Iz) +
-               preOrder(raiz.Dr);
+        if (raiz == null) {
+            return "";
+        }
+        return raiz.texto
+                + preOrder(raiz.Iz)
+                + preOrder(raiz.Dr);
     }
 
     // INORDER
     public String inOrder(NodoExpresion raiz) {
-        if (raiz == null) return "";
+        if (raiz == null) {
+            return "";
+        }
 
         String resultado = "";
 
-        if (esOperador(raiz.texto)) resultado += "(";
+        if (esOperador(raiz.texto)) {
+            resultado += "(";
+        }
 
         resultado += inOrder(raiz.Iz);
         resultado += raiz.texto;
         resultado += inOrder(raiz.Dr);
 
-        if (esOperador(raiz.texto)) resultado += ")";
+        if (esOperador(raiz.texto)) {
+            resultado += ")";
+        }
 
         return resultado;
     }
 
     // POSTORDER
     public String postOrder(NodoExpresion raiz) {
-        if (raiz == null) return "";
+        if (raiz == null) {
+            return "";
+        }
 
-        return postOrder(raiz.Iz) +
-               postOrder(raiz.Dr) +
-               raiz.texto;
+        return postOrder(raiz.Iz)
+                + postOrder(raiz.Dr)
+                + raiz.texto;
     }
 
     // CREAR ARBOL DESDE POSTFIJA
     public NodoExpresion CrearArbolDeExpresiones(String expresion) {
 
-        if (expresion == null || expresion.isEmpty()) return null;
+        if (expresion == null || expresion.isEmpty()) {
+            return null;
+        }
 
         Stack<NodoExpresion> pila = new Stack<>();
 
@@ -144,9 +157,9 @@ public class ArbolDeExpresionGUI extends JFrame {
         String post = nodo.postOrder(raiz);
 
         txtResultado.setText(
-                "PreOrder:  " + pre + "\n\n" +
-                "InOrder:   " + in + "\n\n" +
-                "PostOrder: " + post
+                "PreOrder:  " + pre + "\n\n"
+                + "InOrder:   " + in + "\n\n"
+                + "PostOrder: " + post
         );
     }
 
