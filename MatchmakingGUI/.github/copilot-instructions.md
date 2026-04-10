@@ -1,0 +1,5 @@
+- [x] Proyecto Java Swing para matchmaking multijugador iniciado.
+- [ ] Agregar clases de modelo (Perfil, Partida) y tablas hash personalizadas.
+- [ ] Implementar lógica de inicio/cierre de sesión y emparejamiento.
+- [ ] Integrar la lógica con la interfaz gráfica.
+- [ ] Documentar y probar el sistema.
