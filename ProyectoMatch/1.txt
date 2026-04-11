@@ -1,0 +1,73 @@
+Gestión de perfiles + login/logout
+private HashMap<String, Jugador> tablaPerfiles = new HashMap<>();
+
+
+
+Registro / inserción
+
+tablaPerfiles.put(nuevo.email, nuevo jugadores);
+
+
+
+
+
+Login rápido
+
+tablaPerfiles.computeIfAbsent(miEmailActual, k -> new Jugador("Tú", k, 1200)).estado = Estado.CONECTADO;
+
+
+
+
+Cambio de estado (login/ausente)
+
+yo.estado = Estado.CONECTADO;
+yo.estado = Estado.DESCONECTADO;
+
+
+
+
+Lógica de emparejamiento (matchmaking)
+
+Filtrar jugadores disponibles
+
+List<Jugador> disponibles = tablaPerfiles.values().stream()
+    .filter(j -> j.estado == Estado.CONECTADO)
+    Solo toma jugadores conectados.
+
+Ordenar por ELO
+
+.sorted((j1, j2) -> Integer.compare(j2.elo, j1.elo))
+
+Crear partida
+
+tablaSesiones.put(matchId, new Partida(matchId, disponibles));
+
+
+
+
+Gestión de sesiones activas + finalización
+
+Tabla hash de partidas
+
+private HashMap<String, Partida> tablaSesiones = new HashMap<>();
+
+
+
+Guardar partida
+
+tablaSesiones.put(matchId, new Partida(matchId, disponibles));
+
+
+
+Finalizar partida
+
+String key = tablaSesiones.keySet().iterator().next();
+Partida p = tablaSesiones.remove(key);
+
+
+
+Finalizar partida
+
+
+j.estado = Estado.CONECTADO;
+j.elo += (j.equals(mvp)) ? 30 : 15;
