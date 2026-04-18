@@ -1,9 +1,9 @@
-import java.util.HashMap;
-import java.util.Map;
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
+import javax.swing.*;
 
 public class ContadorCaracteres extends JFrame {
     private JTextField inputField;
@@ -38,7 +38,6 @@ public class ContadorCaracteres extends JFrame {
             }
         });
 
-        // Ejecutar conteo al presionar Enter en el campo de texto
         inputField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -59,14 +58,14 @@ public class ContadorCaracteres extends JFrame {
             contador.put(c, contador.getOrDefault(c, 0) + 1);
         }
 
-        // Ordenar por frecuencia (valor)
+      
         java.util.List<Map.Entry<Character, Integer>> lista = new java.util.ArrayList<>(contador.entrySet());
         lista.sort((a, b) -> b.getValue().compareTo(a.getValue()));
 
         StringBuilder resultado = new StringBuilder();
         resultado.append("Frecuencia de caracteres (ordenado):\n");
         for (Map.Entry<Character, Integer> entry : lista) {
-            resultado.append("'").append(entry.getKey()).append("' : ")
+            resultado.append("").append(entry.getKey()).append(" : ")
                 .append(entry.getValue()).append("\n");
         }
         resultArea.setText(resultado.toString());
