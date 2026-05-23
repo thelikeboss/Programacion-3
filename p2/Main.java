@@ -8,15 +8,15 @@ import java.util.Date;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
-// ==========================================
-// 1. CLASE BLOQUE (Estructura de Datos)
-// ==========================================
+// ============================================================================
+// 1. CLASE BLOQUE (Estructura de Datos del Ledger)
+// ============================================================================
 class Block {
     public int index;
     public long timestamp;
     public String data; // Guardara los datos ENCRIPTADOS para proteger la privacidad
-    public String previousHash;
-    public String hash;
+    public String previousHash; // El enlace al bloque anterior (Garantiza el encadenamiento)
+    public String hash;         // La huella digital unica de ESTE bloque (SHA-256)
     public String hospitalId;
     public String patientSignature;
 
@@ -27,9 +27,13 @@ class Block {
         this.previousHash = previousHash;
         this.hospitalId = hospitalId;
         this.patientSignature = patientSignature;
-        this.hash = calculateHash();
+        this.hash = calculateHash(); 
     }
 
+    // EXPLICACIÓN DEL SHA-256:
+    // Es una funcion criptografica unidireccional. Transforma cualquier volumen de datos 
+    // en una huella digital fija de 64 caracteres. Si se altera una sola letra del historial, 
+    // el Hash cambia por completo (Efecto Avalancha), rompiendo los eslabones de la Blockchain.
     public String calculateHash() {
         String input = index + Long.toString(timestamp) + previousHash + data + hospitalId + patientSignature;
         try {
@@ -43,26 +47,29 @@ class Block {
                 }
                 hexString.append(hex);
             }
-            return hexString.toString();
+            return hexString.toString(); 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 }
 
-// ==========================================
+// ============================================================================
 // 2. SIMULACIÓN DE SMART CONTRACT Y CIFRADO
-// ==========================================
+// ============================================================================
 class MedicalSmartContract {
+    // Clave simetrica privada del paciente para otorgar permisos de lectura/escritura
     private static final String VALID_PATIENT_KEY = "VickySecretKey123";
 
+    // EXPLICACIÓN SMART CONTRACT: Evalua de forma automatica y sin intermediarios 
+    // si el solicitante posee la firma autorizada del paciente.
     public static boolean validateAccess(String patientPrivateKey) {
         return VALID_PATIENT_KEY.equals(patientPrivateKey);
     }
 
     public static String signAuthorization(String privateKey, String hospitalId, String data) {
         if (!validateAccess(privateKey)) {
-            return null; 
+            return null; // Si la llave no es valida, el Smart Contract aborta la operacion
         }
         
         String inputToSign = privateKey + hospitalId + data;
@@ -81,9 +88,9 @@ class MedicalSmartContract {
         }
     }
 
-    /**
-     * Encripta el registro usando una operacion XOR basada en la clave.
-     */
+    // EXPLICACIÓN CIFRADO SIMÉTRICO (XOR): Aplica una mascara logica bit a bit. 
+    // Convierte la informacion medica confidencial en "ruido" o texto corrupto dentro de la red, 
+    // garantizando que los datos esten seguros aun si los nodos de almacenamiento son vulnerados.
     public static String encryptData(String data, String key) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < data.length(); i++) {
@@ -92,22 +99,20 @@ class MedicalSmartContract {
         return sb.toString();
     }
 
-    /**
-     * Descifra el registro medico.
-     */
     public static String decryptData(String encryptedData, String key) {
-        return encryptData(encryptedData, key); // La operacion XOR es simetrica
+        return encryptData(encryptedData, key); // La operacion XOR recupera el texto original al aplicarse de nuevo
     }
 }
 
-// ==========================================
+// ============================================================================
 // 3. LA CADENA DE BLOQUES (Blockchain)
-// ==========================================
+// ============================================================================
 class Blockchain {
     public ArrayList<Block> chain;
 
     public Blockchain() {
         this.chain = new ArrayList<>();
+        // El bloque genesis (Bloque 0) inicializa la red con una clave del sistema
         String genesisText = "Bloque Genesis - Historial Clinico de Victoria";
         String encryptedGenesis = MedicalSmartContract.encryptData(genesisText, "SYSTEM_INIT");
         chain.add(new Block(0, encryptedGenesis, "0", "Sistema Central", "GENESIS_SIG_VALID"));
@@ -121,36 +126,40 @@ class Blockchain {
         String signature = MedicalSmartContract.signAuthorization(patientPrivateKey, hospitalId, data);
 
         if (signature == null) {
-            return false; 
+            return false; // El Smart Contract deniega el registro si la clave no es valida
         }
 
         String encryptedData = MedicalSmartContract.encryptData(data, patientPrivateKey);
 
+        // Se amarra de forma obligatoria el nuevo bloque con el Hash del ultimo bloque actual
         Block newBlock = new Block(chain.size(), encryptedData, getLatestBlock().hash, hospitalId, signature);
         chain.add(newBlock);
         return true;
     }
 
+    // EXPLICACIÓN AUDITORÍA DE INMUTABILIDAD: Recorre el libro contable de inicio a fin.
+    // Compara matematicamente los hashes grabados contra los calculados en tiempo real. 
+    // Si un solo bit cambio en el pasado, la funcion devuelve 'false'.
     public boolean isChainValid() {
         for (int i = 1; i < chain.size(); i++) {
             Block currentBlock = chain.get(i);
             Block previousBlock = chain.get(i - 1);
 
             if (!currentBlock.hash.equals(currentBlock.calculateHash())) {
-                return false;
+                return false; 
             }
 
             if (!currentBlock.previousHash.equals(previousBlock.hash)) {
-                return false;
+                return false; 
             }
         }
-        return true;
+        return true; 
     }
 }
 
-// ==========================================
+// ============================================================================
 // 4. INTERFAZ GRÁFICA PRINCIPAL (Main.java)
-// ==========================================
+// ============================================================================
 public class Main extends JFrame {
 
     private Blockchain medicalRecords;
@@ -163,7 +172,7 @@ public class Main extends JFrame {
     public Main() {
         medicalRecords = new Blockchain();
         initUI();
-        updateLedgerView(""); 
+        updateLedgerView(""); // Inicia mostrando los bloques cifrados en el Ledger general
     }
 
     private void initUI() {
@@ -173,7 +182,7 @@ public class Main extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
 
-        // --- Panel Superior: Estado de Integridad ---
+        // Panel Superior: Estado de Integridad
         JPanel panelTop = new JPanel(new BorderLayout());
         panelTop.setBackground(new Color(240, 244, 248));
         lblStatus = new JLabel("ESTADO DE LA RED: VALIDANDO...", SwingConstants.CENTER);
@@ -182,7 +191,7 @@ public class Main extends JFrame {
         panelTop.add(lblStatus, BorderLayout.CENTER);
         add(panelTop, BorderLayout.NORTH);
 
-        // --- Panel Central: Consola de Visualización del Ledger ---
+        // Panel Central: Consola del Ledger Publico
         txtLedger = new JTextArea();
         txtLedger.setEditable(false);
         txtLedger.setFont(new Font("Consolas", Font.PLAIN, 12));
@@ -192,11 +201,10 @@ public class Main extends JFrame {
         scrollPane.setBorder(BorderFactory.createTitledBorder("Bloques de la Cadena (Datos Cifrados si no hay autorizacion)"));
         add(scrollPane, BorderLayout.CENTER);
 
-        // --- Panel Inferior: Controles e Interacción ---
+        // Panel Inferior: Controles de la Aplicacion
         JPanel panelBottom = new JPanel(new GridLayout(1, 2, 10, 10));
         panelBottom.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        // Formulario de entrada
         JPanel panelForm = new JPanel(new GridLayout(4, 2, 5, 5));
         panelForm.setBorder(BorderFactory.createTitledBorder("Operaciones del Historial Clinico"));
         
@@ -208,7 +216,7 @@ public class Main extends JFrame {
         txtData = new JTextField("Paciente presenta optimo estado fisico.");
         panelForm.add(txtData);
 
-        panelForm.add(new JLabel("Llave Privada Paciente (Autorizar Acceso):"));
+        panelForm.add(new JLabel("Llave Privada Paciente (Autorizar Escritura):"));
         txtPrivateKey = new JPasswordField("VickySecretKey123");
         panelForm.add(txtPrivateKey);
 
@@ -216,7 +224,6 @@ public class Main extends JFrame {
         panelForm.add(btnAdd);
         panelBottom.add(panelForm);
 
-        // Acciones de Red (Validar, Leer, Hackear)
         JPanel panelActions = new JPanel(new GridLayout(3, 1, 5, 5));
         panelActions.setBorder(BorderFactory.createTitledBorder("Controles de Acceso y Red"));
         
@@ -232,9 +239,9 @@ public class Main extends JFrame {
 
         add(panelBottom, BorderLayout.SOUTH);
 
-        // --- Gestión de Eventos (Controladores) ---
+        // --- Gestion de Eventos (Controladores de Botones) ---
         
-        // BOTÓN: AÑADIR BLOQUE (ESCRITURA)
+        // ACCIÓN: AÑADIR BLOQUE
         btnAdd.addActionListener(e -> {
             String hospital = txtHospital.getText();
             String data = txtData.getText();
@@ -248,45 +255,84 @@ public class Main extends JFrame {
             boolean success = medicalRecords.addBlock(data, hospital, key);
             if (success) {
                 txtData.setText(""); 
-                updateLedgerView(key); 
+                updateLedgerView(""); // Se mantiene cifrado en el panel general tras agregar
+                JOptionPane.showMessageDialog(this, "Bloque añadido exitosamente. Los datos se guardaron encriptados en la Blockchain.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             } else {
                 JOptionPane.showMessageDialog(this, 
-                    "[Smart Contract] Transaccion Rechazada:\nEl paciente denego el acceso. Llave de autorizacion incorrecta.", 
+                    "[Smart Contract] Transaccion Rechazada:\nLlave de autorizacion incorrecta. El bloque no se creo.", 
                     "Error de Permisos", 
                     JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        // BOTÓN: LEER HISTORIAL (LECTURA AUTORIZADA)
+        // ACCIÓN: LEER HISTORIAL (SOLICITUD DE ACCESO AL SMART CONTRACT)
         btnRead.addActionListener(e -> {
-            String key = new String(txtPrivateKey.getPassword());
-            if (key.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Debe ingresar la llave privada del paciente para solicitar acceso de lectura.", "Acceso Denegado", JOptionPane.WARNING_MESSAGE);
-                return;
+            String inputKey = JOptionPane.showInputDialog(this, 
+                    "El historial clinico requiere consentimiento.\nIngrese la Llave Privada del Paciente:", 
+                    "Solicitud de Autorización de Lectura", 
+                    JOptionPane.QUESTION_MESSAGE);
+            
+            if (inputKey == null) {
+                return; 
             }
             
-            if (MedicalSmartContract.validateAccess(key)) {
-                updateLedgerView(key);
-                JOptionPane.showMessageDialog(this, "Acceso Autorizado por el Smart Contract. Desencriptando datos...", "Acceso Concedido", JOptionPane.INFORMATION_MESSAGE);
+            if (MedicalSmartContract.validateAccess(inputKey)) {
+                StringBuilder reporte = new StringBuilder();
+                reporte.append("==================================================\n");
+                reporte.append("       REPORTE CLÍNICO COMPARTIDO EN BLOCKCHAIN   \n");
+                reporte.append("==================================================\n");
+                reporte.append(" PACIENTE IDENTIFICADO: Victoria\n");
+                reporte.append(" ACCESO: Autorizado por Smart Contract\n");
+                reporte.append("==================================================\n\n");
+                
+                boolean tieneRegistros = false;
+                for (Block b : medicalRecords.chain) {
+                    if (b.index > 0) { 
+                        String datosDescifrados = MedicalSmartContract.decryptData(b.data, inputKey);
+                        reporte.append(" -> REGISTRO #").append(b.index).append("\n");
+                        reporte.append("    Hospital Emisor: ").append(b.hospitalId).append("\n");
+                        reporte.append("    Diagnostico:     ").append(datosDescifrados).append("\n");
+                        reporte.append("    Firma Digital:   ").append(b.patientSignature).append("\n");
+                        reporte.append("--------------------------------------------------\n");
+                        tieneRegistros = true;
+                    }
+                }
+                
+                if (!tieneRegistros) {
+                    reporte.append(" El paciente no cuenta con registros medicos en la cadena aun.\n");
+                }
+                
+                reporte.append("\n==================================================");
+                
+                JTextArea msgArea = new JTextArea(reporte.toString());
+                msgArea.setEditable(false);
+                msgArea.setFont(new Font("Consolas", Font.PLAIN, 12));
+                JScrollPane scroll = new JScrollPane(msgArea);
+                scroll.setPreferredSize(new Dimension(500, 350));
+                
+                JOptionPane.showMessageDialog(this, scroll, "Historial Clínico Autorizado - Victoria", JOptionPane.INFORMATION_MESSAGE);
+                updateLedgerView(inputKey); 
+                
             } else {
+                JOptionPane.showMessageDialog(this, 
+                        "Acceso Denegado: La llave provista no corresponde al dueño del historial.\nLos datos permanecen cifrados de forma inmutable.", 
+                        "Fallo Crítico de Permisos", 
+                        JOptionPane.ERROR_MESSAGE);
                 updateLedgerView("CLAVE_ERRONEA"); 
-                JOptionPane.showMessageDialog(this, "[Smart Contract] Acceso Denegado: Llave incorrecta. Los datos permanecen protegidos.", "Fallo de Lectura", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        // BOTÓN: SIMULAR MODIFICACIÓN DIRECTA
+        // ============================================================================
+        // EXPLICACIÓN DE LA DESACTIVACIÓN DEL BOTÓN DE ATAQUE:
+        // Se ha desvinculado por completo cualquier interaccion de este boton con el motor 
+        // de la Blockchain o el sistema de alertas del UI. No ejecuta modificaciones de bits,
+        // no lanza mensajes en pantalla ni genera advertencias. Al presionarlo no pasa nada.
+        // ============================================================================
         btnHack.addActionListener(e -> {
-            if (medicalRecords.chain.size() < 2) {
-                JOptionPane.showMessageDialog(this, "Debe anadir al menos un bloque medico legitimo para simular el hackeo.", "Informacion", JOptionPane.INFORMATION_MESSAGE);
-                return;
-            }
-            medicalRecords.chain.get(1).data = "Datos alterados maliciosamente por un intruso externo.";
-            String key = new String(txtPrivateKey.getPassword());
-            updateLedgerView(key);
-            JOptionPane.showMessageDialog(this, "Ataque simulado. Se alteraron directamente los bits guardados en el Bloque 1.", "Aviso del Sistema", JOptionPane.WARNING_MESSAGE);
+            // El boton se deja completamente vacio intencionalmente para no realizar ninguna accion
         });
 
-        // BOTÓN: REINICIAR
+        // ACCIÓN: REINICIAR
         btnReset.addActionListener(e -> {
             medicalRecords = new Blockchain();
             updateLedgerView("");
@@ -315,8 +361,8 @@ public class Main extends JFrame {
             sb.append(" HOSPITAL:      ").append(b.hospitalId).append("\n");
             sb.append(" FIRMA PACIENTE:").append(b.patientSignature).append("\n");
             sb.append(" REGISTRO DATA: ").append(displayedData).append("\n");
-            sb.append(" PREVIOUS HASH: ").append(b.previousHash).append("\n");
-            sb.append(" HASH BLOQUE:   ").append(b.hash).append("\n");
+            sb.append(" PREVIOUS HASH: ").append(b.previousHash).append("\n"); 
+            sb.append(" HASH BLOQUE:   ").append(b.hash).append("\n");         
         }
         sb.append("================================================================================\n");
         txtLedger.setText(sb.toString());
